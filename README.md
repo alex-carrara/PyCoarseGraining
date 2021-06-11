@@ -17,7 +17,7 @@ PyCoarseGraining is a python implementation of the coarse graining functions for
 
 # Dependencies:
  - Coarse graining functions: -Numpy; -Math; -Numba (https://pypi.org/project/numba/)
- - Example1: -Numpy; -Pyvista; 
+ - Example1: -Numpy; - Pyvista; 
  - Example2: -Numpy; - Pyvista; -Pyevtk (https://pypi.org/project/pyevtk/);
  - Example3: -Numpy; - Pyvista;
 
