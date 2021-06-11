@@ -11,17 +11,14 @@ PyCoarseGraining is an python implementation of the coarse graining functions fo
 
 # Examples
  - Example 1 : Computation of the local particle volume fraction.
- - Example 2 : Computation of the particles velocity mean field and granular temperature. Outputs are exported as vtk cell data.
+ - Example 2 : Computation of the velocity mean field of the particles and granular temperature. Outputs are exported as vtk cell data.
  - Example 3 : Computation of the contact stress tensor.
 
- 
-# Architecture: 
-The python function CGfunctions.py currenlty contains all the CG functions
 
 # Dependencies:
  - Coarse graining functions: -Numpy; -Math; -Numba
  - Example1: -Numpy; -Pyvista; 
- - Example2: -Numpy; - Pyvista; -Pyevtk(https://pypi.org/project/pyevtk/);
+ - Example2: -Numpy; - Pyvista; -Pyevtk (https://pypi.org/project/pyevtk/);
  - Example3: -Numpy; - Pyvista;
 
 
