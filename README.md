@@ -1,5 +1,5 @@
 # PyCoarseGraining #
-PyCoarseGraining is an python implementation of the coarse graining functions for DEM presented in Weinhart & al. (2012, 2013, and 2016) and Breard et al. (2020). 
+PyCoarseGraining is a python implementation of the coarse graining functions for DEM presented in Weinhart & al. (2012, 2013, and 2016) and Breard et al. (2020). 
 
 
 # References:
