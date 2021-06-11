@@ -9,26 +9,18 @@ import CGfunctions as cg ## import the CGfunctions precompiled here
 #############################################
 # user defined functions :
 #############################################
-def readfiles(ptcfile,rigidfile,tactfile): # read my input files
-    ptc = pv.read(ptcfile) # load contact points data
+def readfiles(rigidfile): # read my input files
     rigid = pv.read(rigidfile) # load particles data
-    tacts = pv.read(tactfile) # load tact file 
-    force = rigid.get_array('Reac') # read sum of contact force on each particles
-    fext = rigid.get_array('Fext') # read sum of the external forces on the particles
     loc = rigid.points # read the position of the center of mass of the particles
     vp = rigid.get_array('Velocy') # read the particles volocity vector
     npart=rigid.n_points-2 # compute number of particles (-2 because of the two walls in my simulations
-    loc_ptc = ptc.points # read location of the contact points
-    F_ptc = ptc.get_array('R') # read force vector of the contact points
-    N_ptc = ptc.get_array('N') # read contact normal at the contact points
-    vrtx = tacts.points # particles 
-    return loc,vp,force, fext, npart, loc_ptc, F_ptc, N_ptc, vrtx
+    return loc,vp,npart
 
 
 def gen_CG_grid(Xmin,Xmax,Ymin,Ymax,Zmin,Zmax,nx,ny,nz): # generate a regular grid
-    x=np.linspace(Xmin,Xmax,nx)
-    y=np.linspace(Ymin,Ymax,ny)
-    z=np.linspace(Zmin,Zmax,nz)
+    x=np.linspace(Xmin,Xmax,nx) #X coordinates
+    y=np.linspace(Ymin,Ymax,ny) #Y coordinates
+    z=np.linspace(Zmin,Zmax,nz) #Z coordinates
     xx,yy,zz = np.meshgrid(x,y,z)
     return xx,yy,zz
 
@@ -46,7 +38,7 @@ w = 0.00100 # size of the CG sphere
 nstep = 10 # number of time step to be accounted for
 npart = 1000 # number of particles
 
-
+# create ouput dir if doesn't exist
 if not os.path.isdir('./output_example2'):
     os.mkdir('./output_example2')
 
@@ -55,7 +47,7 @@ for i in range(nstep):
     print('########### step: ', i+1 , ' ###########', sep =None)
     nf = i+1
     print('Read files')
-    loc,vp,force,fext,npart, loc_ptc, F_ptc, N_ptc, vrtx=readfiles("DISPLAY/ptc_%s.vtp" % nf,"DISPLAY/rigids_%s.vtu" % nf, "DISPLAY/tacts_%s.vtu" % nf)
+    loc,vp,npart=readfiles("DISPLAY/rigids_%s.vtu" % nf)
     
     
     # Generate the CG grid a function of the height of the domain
@@ -108,12 +100,13 @@ for i in range(nstep):
     visibility_p,W_p = cg.Compute_CG_visibility_weight(pos_cg,loc_cp,3*w,w,'Lucy')
     
     pmass = np.zeros(len(vp_cp))+mass  # create the particle mass vector  
-    print('Compute mass density')
+    print('Compute momentum')
     rho = cg.Compute_CG_scalar(visibility_p,W_p,pmass,len(pos_cg)) #compute local density
     phi = rho[:,0]/2700 # get phi
     
     p = cg.Compute_CG_vector(visibility_p,W_p,vp_cp,len(pos_cg),pmass) #compute momentum
     
+    print('Compute velocity')
     #get velocity
     ux = p[:,0]/rho[:,0]
     uy = p[:,1]/rho[:,0]
@@ -125,18 +118,25 @@ for i in range(nstep):
     uy = np.reshape(uy,(nx,ny,nz))
     uz = np.reshape(uz,(nx,ny,nz))
     
+    print('Compute fluctuation velocity')
     # Measure of the fluctuation velocity:
     u=p
     u[:,0] /= rho[:,0]
     u[:,1] /= rho[:,0]
     u[:,2] /= rho[:,0]
-    # compute stress tensors:
+    
+    # compute flucutation velocity:
     diff = cg.Compute_diff_cg_pts(visibility_p,u,vp_cp)
     
+    print('Compute kinetic stress tensor')
+    #compute 
     sig_kin = cg.Compute_CG_tensor(visibility_p,W_p,diff,diff,len(pos_cg))
     
+    print('Compute granular temperature')
     Tg = np.trace(sig_kin,axis1=1,axis2=2)/(3*rho[:,0]) # get the granular temperature
     Tg = np.reshape(Tg,(nx,ny,nz))  # reshape on a 3D grid
     
+    
+    print('Save CG cell data')
     gridToVTK("./output_example2/CG_%s" %i, xxp, yyp, zzp, cellData = {"phi" : phi, "U" : (ux,uy,uz), "Tg" : Tg }) #save data in a vtk file
     
