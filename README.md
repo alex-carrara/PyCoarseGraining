@@ -10,7 +10,7 @@ PyCoarseGraining is a python implementation of the coarse graining functions for
 
 
 # Examples
- - Example 1 : Computation of the local particle volume fraction.
+ - Example 1 : Computation of the average particle volume fraction.
  - Example 2 : Computation of the velocity mean field of the particles and granular temperature. Outputs are exported as vtk cell data.
  - Example 3 : Computation of the contact stress tensor.
 
