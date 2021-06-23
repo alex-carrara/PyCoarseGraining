@@ -20,7 +20,7 @@ def gen_CG_grid(Xmin,Xmax,Ymin,Ymax,Zmin,Zmax,nx,ny,nz): # generate a regular gr
     x=np.linspace(Xmin,Xmax,nx) #X coordinates
     y=np.linspace(Ymin,Ymax,ny) #Y coordinates
     z=np.linspace(Zmin,Zmax,nz) #Z coordinates
-    xx,yy,zz = np.meshgrid(x,y,z)
+    xx,yy,zz = np.meshgrid(x,y,z,indexing='ij')
     return xx,yy,zz
 
 
