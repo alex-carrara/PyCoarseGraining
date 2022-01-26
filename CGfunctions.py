@@ -19,7 +19,8 @@ def Compute_CG_visibility_weight(CG_pts,Dis_pts,cutoff,w,method,int_vec=False,ve
     int_vec: Boolean to integrate along a vector. If True, W is integrated along vec from the disrete points (boolean)
     vec: vector along which W is integrated (number of discrete points, 3)
     Output:
-    W = interpolation weight of the CG-discrete particle couples (nb of CG discrete points couples, 3)"""
+    visibility = list of visibility between CG nodes and discrte pts (nb couples, 2)
+    W = interpolation weight of the CG-discrete particle couples (nb of CG discrete points couples)"""
     # AC this function is necessary since numba doesn't manage the convertion from list to numpy array yet.
     if vec is None:
         vec=np.zeros((len(Dis_pts),3)) #requiered if vec undefined for numba
@@ -40,7 +41,7 @@ def Compute_CG_tensor(visibility,W,Vec1,Vec2,n_cg_pts,scalars = None):
     scalars = Scalar use in the computation of the tensor (mass or volume of the particles). If = None or unspecified: not accounted for. (len(vec1),3)
     Output:
     tens = sum of the tensor at the CG points"""
-    tens=np.zeros((n_cg_pts,3,3))
+    tens=np.zeros((n_cg_pts,len(Vec1[0,:]),len(Vec1[0,:])))
     for i in range(len(visibility)):
         if len(Vec1)==len(visibility):
             if scalars is None:
@@ -65,7 +66,7 @@ def Compute_CG_vector(visibility,W,Vec1,n_cg_pts,scalars = None):
     scalars = Scalar use in the computation of the vector (mass or volume of the particles). If = None or unspecified: not accounted for. (len(vec1),3)
     Output:
     vec = sum of the vector at the CG points"""
-    vec=np.zeros((n_cg_pts,3))
+    vec=np.zeros((n_cg_pts,len(Vec1[0,:])))
     for i in range(len(visibility)):
         if len(Vec1)==len(visibility):
             if scalars is None:
