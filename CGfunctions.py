@@ -9,7 +9,7 @@ from numba import njit
 #                                                                                                                                              #
 ################################################################################################################################################
 
-def Compute_CG_visibility_weight(CG_pts,Dis_pts,cutoff,w,method,int_vec=False,vec=None):
+def Compute_CG_visibility_weight(CG_pts,Dis_pts,cutoff,w,method,int_vec=False,vec=None,start_pts_vec=None):
     """Create the visibility and W arrays as a function of the CG cutoff distance and compute the associated CG weigth
     CG_pts: cooridiantes of the CG points for interpolation (number of CG points,3)
     Dis_pts: coordinates of the discrete point (for example particle centers or contact points (number of discrete points,3)
@@ -18,13 +18,14 @@ def Compute_CG_visibility_weight(CG_pts,Dis_pts,cutoff,w,method,int_vec=False,ve
     method: Can be either Lucy or Gaussian for points. (string)
     int_vec: Boolean to integrate along a vector. If True, W is integrated along vec from the disrete points (boolean)
     vec: vector along which W is integrated (number of discrete points, 3)
+    start_pts_vec=None = if the vector starting pts is different from Dis_pts, it should be indicated here by adding a vector containing the pts coordinates
     Output:
     visibility = list of visibility between CG nodes and discrte pts (nb couples, 2)
     W = interpolation weight of the CG-discrete particle couples (nb of CG discrete points couples)"""
     # AC this function is necessary since numba doesn't manage the convertion from list to numpy array yet.
     if vec is None:
         vec=np.zeros((len(Dis_pts),3)) #requiered if vec undefined for numba
-    visibility, W = Compute_CG_visibility_weight_lst(CG_pts,Dis_pts,cutoff,w,method,int_vec,vec)
+    visibility, W = Compute_CG_visibility_weight_lst(CG_pts,Dis_pts,cutoff,w,method,int_vec,vec,start_pts_vec)
     visibility = np.array(visibility)
     W = np.array(W)
     return visibility, W
@@ -132,7 +133,7 @@ def Compute_diff_cg_pts(visibility,val_cg,val_pts):
 ################################################################################################################################################
 
 @njit
-def Compute_CG_visibility_weight_lst(CG_pts,Dis_pts,cutoff,w,method,int_vec,vec):
+def Compute_CG_visibility_weight_lst(CG_pts,Dis_pts,cutoff,w,method,int_vec,vec,start_pts_vec):
     """generate the visibility and W lists
         CG_pts: cooridiantes of the CG points for interpolation (number of CG points,3)
         Dis_pts: coordinates of the discrete point (for example particle centers or contact points (number of discrete points,3)
@@ -141,6 +142,7 @@ def Compute_CG_visibility_weight_lst(CG_pts,Dis_pts,cutoff,w,method,int_vec,vec)
         method: Can be either Lucy or Gaussian for points. (string)
         int_vec: Boolean to integrate along a vector. If True, W is integrated along vec from the disrete points (boolean)
         vec: vector along which W is integrated (number of discrete points, 3)
+        start_pts_vec : contains athe starting position of the vector to be interpolated. If None, starting pts for integration is assumed to be is Dis_pts
         """
     ### AC: This one can be long to compute for large datasets but reduces the computational cost later. In the current implementation, this function is supported by njit but should not be run in parallel.
     visibility = [] #init list
@@ -151,9 +153,12 @@ def Compute_CG_visibility_weight_lst(CG_pts,Dis_pts,cutoff,w,method,int_vec,vec)
             if dist<cutoff:
                 visibility.append(np.array([i,j]))
                 if(int_vec == True):
-                    Wb = Compute_Dis_Weigth(CG_pts[i,:]-Dis_pts[j,:],w,method,cutoff,int_vec,vec[j,:])
+                    if start_pts_vec is None:
+                        Wb = Compute_Dis_Weigth(CG_pts[i,:]-Dis_pts[j,:],w,method,cutoff,int_vec,vec[j,:])
+                    else:
+                        Wb = Compute_Dis_Weigth(CG_pts[i,:]-start_pts_vec[j,:],w,method,cutoff,int_vec,vec[j,:])
                 else:
-                    Wb = Compute_Dis_Weigth(CG_pts[i,:]-Dis_pts[j,:],w,method,cutoff,int_vec,vec[j,:])
+                    Wb = Compute_Dis_Weigth(CG_pts[i,:]-Dis_pts[j,:],w,method,cutoff,int_vec,vec[j,:]) # can be commented same as above (remove a if (to be tested)
                 W.append(Wb)
     return visibility, W
 
@@ -171,7 +176,7 @@ def Compute_Dis_Weigth(vec1,w,method,c,int_vec,vec2):
     Output:
     W = CG interpolation weight"""
     if(int_vec=='True'):
-        W = ComputeIntegralW(c,vec1,vec2,method,w)
+            W = ComputeIntegralW(c,vec1,vec2,method,w)
     else:
         dist = np.linalg.norm(vec1)
         if(method == 'Lucy'):
